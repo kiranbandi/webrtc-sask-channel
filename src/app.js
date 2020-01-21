@@ -4,17 +4,6 @@ import SimpleSignalClient from './custom-signal';
 import cuid from 'cuid';
 import _ from 'lodash';
 
-const randomId = cuid();
-
-$('#clicker').html(randomId);
-
-$('#clicker').on('click', () => {
-    signalClient.peers().forEach(peer => {
-        // send your message here 
-        peer.send('yoda is awesome' + signalClient.peers().length);
-    });
-});
-
 const socket = io('localhost:8080') // setup the socket.io socket
 const signalClient = new SimpleSignalClient(socket) // construct the signal client
 
@@ -33,10 +22,10 @@ signalClient.once('discover', (response) => {
 // and a new connection will be made with him
 signalClient.on('request', async(request) => {
     const { peer } = await request.accept();
-    onPeer(peer);
+    startListeningToPeer(peer);
 })
 
-function onPeer(peer) {
+function startListeningToPeer(peer) {
     peer.on('data', (message) => {
         // the message from every person is received here 
         // and the peer._id can identify who it is from 
@@ -48,16 +37,25 @@ function onPeer(peer) {
 // connects to a peer
 async function connectToPeer(peerID) {
     console.log('connecting to peer', peerID);
-
     try {
         const { peer } = await signalClient.connect(peerID) // connect to the peer
         console.log('connected to peer', peerID);
-        onPeer(peer);
+        startListeningToPeer(peer);
     } catch (err) {
         console.log('couldnt connect to peer');
     }
 
 }
+
+// CODE FOR UI
+const randomId = cuid();
+$('#clicker').html(randomId);
+$('#clicker').on('click', () => {
+    signalClient.peers().forEach(peer => {
+        // send your message here 
+        peer.send('yoda is awesome');
+    });
+});
 
 // Code cleanup when a client is closed or refreshed
 window.addEventListener("beforeunload", function(e) {
