@@ -15,8 +15,8 @@ signal.on('discover', (request) => {
     // Peer is initiating a new request and wants a list of all peers
     if (custom_message == 'join') {
         console.log(request.socket.id, 'joined channel');
+        request.discover(request.socket.id, { peers: Array.from(saskChannel) });
         saskChannel.add(request.socket.id) // add peer to channel
-        request.discover(request.socket.id, { peers: Array.from(saskChannel) })
     } else if (custom_message == 'leave') {
         // if peer was already in a room
         console.log(request.socket.id, 'left channel')
