@@ -2,11 +2,6 @@ const io = require('socket.io')() // create a socket.io server
 var SimpleSignalServer = require('simple-signal-server')
 var signal = new SimpleSignalServer(io)
 
-// here we hardcode some fixed rooms, but you could easily create them dynamically
-const rooms = {
-    'sask': new Set()
-}
-
 const saskChannel = new Set();
 
 // when a peer starts, it will request a list of all peers 

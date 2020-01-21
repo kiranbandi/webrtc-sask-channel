@@ -167,7 +167,7 @@ SimpleSignalClient.prototype.connect = function(target, metadata = {}, peerOptio
 }
 
 SimpleSignalClient.prototype._onSafeConnect = function(peer, callback) {
-    // simple-signal caches stream and track events so they always come AFTER connect
+    // simple-signal caches stream and track events and also data channel event so they always come AFTER connect
     const cachedEvents = []
 
     function streamHandler(stream) {
@@ -177,8 +177,13 @@ SimpleSignalClient.prototype._onSafeConnect = function(peer, callback) {
     function trackHandler(track, stream) {
         cachedEvents.push({ name: 'track', args: [track, stream] })
     }
+
+    function dataHandler() {
+        cachedEvents.push({ name: 'data', args: [data] })
+    }
     peer.on('stream', streamHandler)
     peer.on('track', trackHandler)
+    peer.on('data', dataHandler)
     peer.once('connect', () => {
         setTimeout(() => {
             peer.emit('connect') // expose missed 'connect' event to application
@@ -190,6 +195,7 @@ SimpleSignalClient.prototype._onSafeConnect = function(peer, callback) {
         }, 0)
         peer.removeListener('stream', streamHandler)
         peer.removeListener('track', trackHandler)
+        peer.removeListener('data', dataHandler)
         callback(peer)
     })
 }
