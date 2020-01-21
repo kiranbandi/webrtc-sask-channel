@@ -5,7 +5,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-    entry: ['babel-polyfill', './src/app.jsx'],
+    entry: ['babel-polyfill', './src/app.js'],
     output: {
         path: path.resolve("build/assets/bundle"),
         filename: "[name].bundle.[chunkhash].js",
