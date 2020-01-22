@@ -18,20 +18,17 @@
 </head>
 
 <body class='with-top-navbar'>
-
     <style>
-        video {
-            display: inline;
-            width: 300px;
+        #root {
+            border: 2px solid black;
+            margin: 0px auto;
+            height: 750px;
+            width: 750px;
+            position: relative;
         }
     </style>
     <!--container where content is to be loaded-->
     <div id="root">
-        <button id='clicker'>test</button>
-
-        <p id='playground'>Nothing here</p>
-        <div id="remoteVideos"></div>
-
     </div>
     <!--loading assets and webpack bundle-->
     <script src="assets/js/jquery.min.js"></script>
