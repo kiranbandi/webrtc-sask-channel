@@ -4,7 +4,7 @@ import SimpleSignalClient from './custom-signal';
 import cuid from 'cuid';
 import _ from 'lodash';
 
-const socket = io('localhost:8080'); // setup the socket.io socket
+const socket = io('localhost:80'); // setup the socket.io socket
 const signalClient = new SimpleSignalClient(socket); // construct the signal client
 
 let currentID = '';
