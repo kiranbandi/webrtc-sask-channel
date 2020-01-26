@@ -8,3 +8,6 @@ Then start the backend signalling server using the command below
 
 Finally start the UI server using the command below and then it should be live [here](https://localhost:8000/)
 ``` npm run start```
+
+For now we have implemented mouse tracking but there will be more updates in future.
+Try opening the localhost link in multiple tabs and then moving the mouse around. You should see the mouse movements being tracked and replicated on screen for all the users.
