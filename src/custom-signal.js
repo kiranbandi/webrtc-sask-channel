@@ -8,6 +8,8 @@ inherits(SimpleSignalClient, EventEmitter)
 const ERR_CONNECTION_TIMEOUT = 'ERR_CONNECTION_TIMEOUT'
 const ERR_PREMATURE_CLOSE = 'ERR_PREMATURE_CLOSE'
 
+var DATA_CHANNEL_OPTIONS;
+
 /**
  * SimpleSignalClient
  *
@@ -17,6 +19,8 @@ const ERR_PREMATURE_CLOSE = 'ERR_PREMATURE_CLOSE'
  */
 function SimpleSignalClient(socket, options = {}) {
     if (!(this instanceof SimpleSignalClient)) return new SimpleSignalClient(socket)
+
+    DATA_CHANNEL_OPTIONS = options.dataChannelOptions || {};
 
     EventEmitter.call(this)
 
@@ -53,6 +57,9 @@ SimpleSignalClient.prototype._onOffer = function({ initiator, metadata, sessionI
 
 SimpleSignalClient.prototype._accept = function(request, metadata = {}, peerOptions = {}) {
     peerOptions.initiator = false
+
+    peerOptions.channelConfig = {...DATA_CHANNEL_OPTIONS };
+
     const peer = this._peers[request.sessionId] = new SimplePeer(peerOptions)
 
     peer.on('signal', (signal) => {
@@ -126,6 +133,9 @@ SimpleSignalClient.prototype.connect = function(target, metadata = {}, peerOptio
 
     const sessionId = cuid() // TODO: Use crypto
     var firstOffer = true
+
+    peerOptions.channelConfig = {...DATA_CHANNEL_OPTIONS };
+
     const peer = this._peers[sessionId] = new SimplePeer(peerOptions)
 
     peer.once('close', () => {

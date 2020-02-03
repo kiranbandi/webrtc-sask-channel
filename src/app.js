@@ -4,8 +4,19 @@ import SimpleSignalClient from './custom-signal';
 import cuid from 'cuid';
 import _ from 'lodash';
 
+// answer discussion UDP/TCP switch and how to test which
+// https://stackoverflow.com/questions/18897917/does-webrtc-use-tcp-or-udp
+
+var dataChannelOptions = {
+    ordered: false, // do not guarantee order
+    //maxRetransmitTime: 0,    // in milliseconds, for other options go to https://www.html5rocks.com/en/tutorials/webrtc/datachannels/
+    // reliable: false, // reliability is controlled by maxRetransmitTime or maxRetransmits parameters. 
+    // For TCP keep them commented and for UDP assign them value 0. default value 65535.
+    maxRetransmits: 3000, // can't be used maxRetransmitTime and maxRetransmits both
+}
+
 const socket = io('localhost:80'); // setup the socket.io socket
-const signalClient = new SimpleSignalClient(socket); // construct the signal client
+const signalClient = new SimpleSignalClient(socket, { dataChannelOptions }); // construct the signal client
 
 let currentID = '';
 
@@ -73,9 +84,6 @@ window.addEventListener("beforeunload", function(e) {
     // intimate signalling server that you are leaving the channel
     signalClient.discover('leave');
 });
-
-
-
 
 signalClient.peers().forEach(peer => {
     // send your message here 
