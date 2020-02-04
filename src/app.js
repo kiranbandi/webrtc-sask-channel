@@ -10,7 +10,7 @@ import _ from 'lodash';
 var dataChannelOptions = {
     ordered: false, // do not guarantee order
     //maxRetransmitTime: 0,    // in milliseconds, for other options go to https://www.html5rocks.com/en/tutorials/webrtc/datachannels/
-    // reliable: false, // reliability is controlled by maxRetransmitTime or maxRetransmits parameters. 
+    reliable: false, // reliability is controlled by maxRetransmitTime or maxRetransmits parameters. 
     // For TCP keep them commented and for UDP assign them value 0. default value 65535.
     maxRetransmits: 3000, // can't be used maxRetransmitTime and maxRetransmits both
 }
@@ -35,40 +35,54 @@ signalClient.discover('join')
 signalClient.once('discover', (response) => {
     // store our ID that server gives so we can use it to identify our data 
     currentID = response.currentID;
+    // Set the current ID on screen
+    $("#innerID").text('  ' + currentID);
     // for every peer we create a connection
-    response.peers.forEach(peerID => connectToPeer(peerID)) // connect to all peers in new room
+    response.peers.forEach(peer => connectToPeer(peer)) // connect to all peers in new room
 });
 // if a new peer joins the room at a later point after this client 
 // has joined he will make a request which will be accepted in the following block 
 // and a new connection will be made with him
 signalClient.on('request', async(request) => {
-    const { peer } = await request.accept();
-    startListeningToPeer(peer, request.initiator);
+    const { peer, metadata } = await request.accept();
+    startListeningToPeer(peer, metadata.customID);
 })
 
-function startListeningToPeer(peer, peerID) {
+function startListeningToPeer(peer, customPeerID) {
 
-    createCursor(peerID, colorScale[currentPeerCount++]);
+    createCursor(customPeerID);
 
-    let peerCursor;
+    let peerMessage;
+
     peer.on('data', (message) => {
         // the message from every person is received here 
-        peerCursor = message.toString('utf8').split(',');
-        $('#' + peerID).css({ 'left': peerCursor[0] + 'px', top: peerCursor[1] + 'px' })
+        peerMessage = message.toString('utf8').split(',');
+
+        // If the message being sent is a text message then
+        if (peerMessage[2].length > 0) {
+            $('#content').append('<p><b>' + customPeerID + ': </b>' + peerMessage[2] + '</p>');
+        }
+        // else it is a cursor related message
+        else {
+            $('#' + customPeerID).css({ 'left': peerMessage[0] + 'px', top: peerMessage[1] + 'px' })
+        }
+
 
     });
     // remove a peers corresponding cursor if he has left channel
-    peer.on('close', () => { $('#' + peerID).remove() });
+    peer.on('close', () => { $('#' + customPeerID).remove() });
 
 }
 
 // connects to a peer
-async function connectToPeer(peerID) {
-    console.log('connecting to peer', peerID);
+async function connectToPeer(peerInfo) {
+    console.log('connecting to peer', peerInfo.customID);
     try {
-        const { peer } = await signalClient.connect(peerID) // connect to the peer
-        console.log('connected to peer', peerID);
-        startListeningToPeer(peer, peerID);
+        // while making a connection also send your customID to the remote so he 
+        // knows what to name your cursor
+        const { peer } = await signalClient.connect(peerInfo.peerID, { customID: currentID }) // connect to the peer
+        console.log('connected to peer', peerInfo.customID);
+        startListeningToPeer(peer, peerInfo.customID);
     } catch (err) {
         console.log('couldnt connect to peer');
     }
@@ -82,7 +96,7 @@ window.addEventListener("beforeunload", function(e) {
         peer.destroy();
     });
     // intimate signalling server that you are leaving the channel
-    signalClient.discover('leave');
+    signalClient.discover('leave-' + currentID);
 });
 
 signalClient.peers().forEach(peer => {
@@ -98,7 +112,21 @@ var topOffsetY = rootElement.offset().top;
 rootElement.on('mousemove', (e) => {
     signalClient.peers().forEach(peer => {
         // send your message here 
-        peer.send([e.pageX - topOffsetX, e.pageY - topOffsetY]);
+        peer.send([e.pageX - topOffsetX, e.pageY - topOffsetY, '']);
+    });
+})
+
+
+// broadcast message to all other connected peers when send is clicked
+$("#send-button").on('click', (e) => {
+    signalClient.peers().forEach(peer => {
+        const messageToBeSent = $("#send-message").val();
+        // send your message here 
+        peer.send([0, 0, messageToBeSent]);
+        // add the message also to your own content box
+        $('#content').append('<p><b>' + currentID + ': </b>' + messageToBeSent + '</p>');
+        // clean input box after message is sent
+        $('#send-message').val('');
     });
 })
 
