@@ -6,7 +6,7 @@ First run the following command to install all the required dependencies from th
 Then start the backend signalling server using the command below
 ``` npm run signal_server```
 
-Finally start the UI server using the command below and then it should be live [here](https://localhost:8000/)
+Finally start the UI server using the command below and then it should be live [here](https://localhost:8083/)
 ``` npm run start```
 
 For now we have implemented mouse tracking but there will be more updates in future.
