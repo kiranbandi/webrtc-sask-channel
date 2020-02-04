@@ -3,6 +3,14 @@ import io from 'socket.io-client';
 import SimpleSignalClient from './custom-signal';
 import cuid from 'cuid';
 import _ from 'lodash';
+import drawing from './drawing';
+
+
+
+// Initialize canvas drawing and attach a callback that is called when the user starts drawing
+let canvasContext = drawing((positions) => {
+    sendDataToPeers('canvas-line', positions);
+});
 
 // answer discussion UDP/TCP switch and how to test which
 // https://stackoverflow.com/questions/18897917/does-webrtc-use-tcp-or-udp
@@ -55,16 +63,31 @@ function startListeningToPeer(peer, customPeerID) {
     let peerMessage;
 
     peer.on('data', (message) => {
-        // the message from every person is received here 
-        peerMessage = message.toString('utf8').split(',');
 
-        // If the message being sent is a text message then
-        if (peerMessage[2].length > 0) {
-            $('#content').append('<p><b>' + customPeerID + ': </b>' + peerMessage[2] + '</p>');
-        }
-        // else it is a cursor related message
-        else {
-            $('#' + customPeerID).css({ 'left': peerMessage[0] + 'px', top: peerMessage[1] + 'px' })
+        const data = JSON.parse(message);
+
+        switch (data.dataType) {
+            case 'mouse-position':
+                $('#' + customPeerID).css({ 'left': data.payload[0] + 'px', top: data.payload[1] + 'px' })
+                break;
+            case 'chat-message':
+                $('#content').append('<p><b>' + customPeerID + ': </b>' + data.payload + '</p>');
+                break;
+            case 'canvas-line':
+
+                const { start, end } = data.payload;
+
+                canvasContext.beginPath();
+                canvasContext.moveTo(start[0], start[1]);
+                canvasContext.lineTo(end[0], end[1]);
+                canvasContext.strokeStyle = 'black';
+                canvasContext.lineWidth = 2;
+                canvasContext.stroke();
+                canvasContext.closePath();
+
+                break;
+            default:
+                // cdo nothing here
         }
 
 
@@ -99,38 +122,30 @@ window.addEventListener("beforeunload", function(e) {
     signalClient.discover('leave-' + currentID);
 });
 
-signalClient.peers().forEach(peer => {
-    // send your message here 
-    peer.send(['sadasd', 12, 10]);
-});
-
 var rootElement = $('#root');
 var topOffsetX = rootElement.offset().left;
 var topOffsetY = rootElement.offset().top;
 
 // broadcast mousemovement to all other connected peers
 rootElement.on('mousemove', (e) => {
-    signalClient.peers().forEach(peer => {
-        // send your message here 
-        peer.send([e.pageX - topOffsetX, e.pageY - topOffsetY, '']);
-    });
+    sendDataToPeers('mouse-position', [e.pageX - topOffsetX, e.pageY - topOffsetY]);
 })
 
-
-// broadcast message to all other connected peers when send is clicked
+// broadcast text message to all other connected peers when send button is clicked
 $("#send-button").on('click', (e) => {
-    signalClient.peers().forEach(peer => {
-        const messageToBeSent = $("#send-message").val();
-        // send your message here 
-        peer.send([0, 0, messageToBeSent]);
-        // add the message also to your own content box
-        $('#content').append('<p><b>' + currentID + ': </b>' + messageToBeSent + '</p>');
-        // clean input box after message is sent
-        $('#send-message').val('');
-    });
+    const messageToBeSent = $("#send-message").val();
+    // send your message here 
+    sendDataToPeers('chat-message', messageToBeSent);
+    // add the message also to your own content box
+    $('#content').append('<p><b>' + currentID + ': </b>' + messageToBeSent + '</p>');
+    // clean input box after message is sent
+    $('#send-message').val('');
 })
 
 
+
+
+// function to create a new cursor in a random color on the box to represent to a peer
 function createCursor(mountID) {
 
     const colorHash = colorScale[currentPeerCount];
@@ -147,4 +162,12 @@ function createCursor(mountID) {
             'left': '0px'
         });
 
+}
+
+
+function sendDataToPeers(dataType, payload) {
+    signalClient.peers().forEach(peer => {
+        // send your message here 
+        peer.send(JSON.stringify({ dataType, payload }));
+    });
 }
