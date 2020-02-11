@@ -23,7 +23,7 @@ var dataChannelOptions = {
     maxRetransmits: 3000, // can't be used maxRetransmitTime and maxRetransmits both
 }
 
-const socket = io('10.81.6.42:80'); // setup the socket.io socket
+const socket = io('gwf-hci.usask.ca:8083'); // setup the socket.io socket
 const signalClient = new SimpleSignalClient(socket, { dataChannelOptions }); // construct the signal client
 
 let currentID = '';

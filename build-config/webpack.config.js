@@ -14,7 +14,9 @@ module.exports = {
     devServer: {
         inline: true,
         contentBase: './build',
-        port: 8083,
+        port: 8082,
+ 	compress: true, // fixing invalid host header error on UI
+    	disableHostCheck: true,   // That solved it
         watchOptions: {
             ignored: [
                 path.resolve(__dirname, 'build'),
