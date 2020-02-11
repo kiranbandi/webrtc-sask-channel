@@ -23,7 +23,7 @@ var dataChannelOptions = {
     maxRetransmits: 3000, // can't be used maxRetransmitTime and maxRetransmits both
 }
 
-const socket = io('10.81.6.63:8082'); // setup the socket.io socket
+const socket = io('10.81.6.42:80'); // setup the socket.io socket
 const signalClient = new SimpleSignalClient(socket, { dataChannelOptions }); // construct the signal client
 
 let currentID = '';
@@ -71,8 +71,15 @@ function startListeningToPeer(peer, customPeerID) {
                 $('#' + customPeerID).css({ 'left': data.payload[0] + 'px', top: data.payload[1] + 'px' })
                 break;
             case 'chat-message':
-                $('#content').append('<p><b>' + customPeerID + ': </b>' + data.payload + '</p>');
-                break;
+                $('#content').append('<p><b>' + customPeerID + ': </b>' + data.payload + '_' + new Date().getTime() + '</p>');
+				//const send_back = "11111111111111111111111111111111111111111111111111";   // 50 byte
+                sendDataToPeers('chat-message-back', data.payload);
+				break;
+				
+			case 'chat-message-back':
+                $('#content').append('<p><b>' + customPeerID + ': </b>' + data.payload + '_' + new Date().getTime() + '</p>');
+				break;
+				
             case 'canvas-line':
 
                 const { start, end } = data.payload;
@@ -133,13 +140,19 @@ rootElement.on('mousemove', (e) => {
 
 // broadcast text message to all other connected peers when send button is clicked
 $("#send-button").on('click', (e) => {
-    const messageToBeSent = $("#send-message").val();
+    //const messageToBeSent = $("#send-message").val();
+	//const messageToBeSent = "ABCDE_".concat(new Date().getTime());
     // send your message here 
-    sendDataToPeers('chat-message', messageToBeSent);
-    // add the message also to your own content box
-    $('#content').append('<p><b>' + currentID + ': </b>' + messageToBeSent + '</p>');
-    // clean input box after message is sent
-    $('#send-message').val('');
+	for(var i=0; i<1000; i++){
+		//const messageToBeSent = i+"_1111111111111111111111111111111111111111111111111"; // 50 bytes
+		const messageToBeSent = i+"_111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111"; // 100 bytes
+		sendDataToPeers('chat-message', messageToBeSent);
+	
+		// add the message also to your own content box
+		$('#content').append('<p><b>' + currentID + ': </b>' + messageToBeSent + '_' + new Date().getTime() + '</p>');
+		// clean input box after message is sent
+		$('#send-message').val('');
+	}
 })
 
 

@@ -27,4 +27,4 @@ signal.on('discover', (request) => {
     }
 })
 
-io.listen(8082)
+io.listen(80)
