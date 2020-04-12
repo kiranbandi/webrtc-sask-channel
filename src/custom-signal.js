@@ -26,7 +26,6 @@ function SimpleSignalClient(socket, options = {}) {
 
     const { connectionTimeout = 10 * 1000 } = options
 
-    this.id = null
     this.socket = socket
     this._connectionTimeout = connectionTimeout
 
@@ -127,7 +126,6 @@ SimpleSignalClient.prototype._onSignal = function({ sessionId, signal, metadata 
 }
 
 SimpleSignalClient.prototype.connect = function(target, metadata = {}, peerOptions = {}) {
-    if (!this.id) throw new Error('Must complete discovery first.')
 
     peerOptions.initiator = true
 
@@ -246,8 +244,6 @@ SimpleSignalClient.prototype.peers = function() {
 SimpleSignalClient.prototype.destroy = function() {
     this.socket.close()
     this.peers().forEach(peer => peer.destroy())
-
-    this.id = null
     this.socket = null
     this._peers = null
     this._sessionQueues = null

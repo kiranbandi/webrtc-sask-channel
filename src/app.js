@@ -20,21 +20,18 @@ var dataChannelOptions = {
 const socket = io('localhost:8082'); // setup the socket.io socket
 const signalClient = new SimpleSignalClient(socket, { dataChannelOptions }); // construct the signal client
 
-var hubPeerReference = null;
+var hubPeerInstance = null;
 var currentID = '';
 
-// make a call to join the channel 
+// Join the channel and and then let the signalling  client know that you are ready
 console.log('requesting to join channel');
-signalClient.discover('peer-join')
-
-// then listen for reply from signalling server 
-signalClient.on('discover', (response) => {
-
-    const message = response.message;
-
-    if (message == 'discovery') {
-        debugger;
-        currentID = response.currentID;
+signalClient.discover('join');
+signalClient.once('discover', (r) => {
+    // broadcast joining message
+    socket.emit('peer-join');
+    // then listen for reply from signaling server 
+    socket.on('notify', (response) => {
+        currentID = response.customID;
         // Set the current ID on screen
         $("#innerID").text('  ' + currentID);
         // Create cursors for everyone else in the channel 
@@ -43,18 +40,20 @@ signalClient.on('discover', (response) => {
         if (response.hubReady) {
             connectToHub(response.hubPeerID, currentID);
         }
-    } else if (message == 'peer-join') {
-        debugger;
-        createCursor(response.peerInfo);
-    } else if (message == 'peer-left') {
-        // remove cursor for corresponding peer
-        $('#' + response.peerInfo).remove();
-    }
+    });
+    // when a new peer joins create a cursor for it
+    socket.on('peer-join', (p) => { createCursor(p) });
+    // when a peer exits the channel remove cursor from dom
+    socket.on('peer-left', (p) => { $('#' + p).remove(); });
+    // if a hub is ready, show on dom that hub is ready 
+    socket.on('hub-join', (p) => { console.log('hub-ready') });
+    // if a hub has left channel
+    socket.on('hub-left', (p) => { location.reload() });
 });
 
 // if hub joins the room at a later point after this client 
-// has joined he will make a request which will be accepted in the following block 
-// and a new connection will be made with him
+// it will make a request which will be accepted in the following block 
+// and a new webrtc connection will be made
 signalClient.on('request', async(request) => {
     const { peer } = await request.accept();
     startListeningToHub(peer);
@@ -62,36 +61,37 @@ signalClient.on('request', async(request) => {
 
 function startListeningToHub(hub) {
 
-    hubPeerReference = hub;
+    hubPeerInstance = hub;
 
-    // createCursor(customPeerID);
     hub.on('data', (message) => {
 
-        const data = JSON.parse(message);
+        const data = JSON.parse(message),
+            payload = data.payload,
+            remoteID = data.remoteID;
 
-        // switch (data.dataType) {
-        //     case 'mouse-position':
-        //         $('#' + customPeerID).css({ 'left': data.payload[0] + 'px', top: data.payload[1] + 'px' })
-        //         break;
-        //     case 'chat-message':
-        //         $('#content').append('<p><b>' + customPeerID + ': </b>' + data.payload + '</p>');
-        //         break;
-        //     case 'canvas-line':
-
-        //         const { start, end } = data.payload;
-
-        //         canvasContext.beginPath();
-        //         canvasContext.moveTo(start[0], start[1]);
-        //         canvasContext.lineTo(end[0], end[1]);
-        //         canvasContext.strokeStyle = 'black';
-        //         canvasContext.lineWidth = 2;
-        //         canvasContext.stroke();
-        //         canvasContext.closePath();
-
-        //         break;
-        //     default:
-        //         // cdo nothing here
-        // }
+        // ignore own messages if they are being relayed back
+        if (currentID != remoteID) {
+            switch (data.dataType) {
+                case 'mouse-position':
+                    $('#' + remoteID).css({ 'left': payload[0] + 'px', top: payload[1] + 'px' })
+                    break;
+                case 'chat-message':
+                    $('#content').append('<p><b>' + remoteID + ': </b>' + payload + '</p>');
+                    break;
+                case 'canvas-line':
+                    const { start, end } = payload;
+                    canvasContext.beginPath();
+                    canvasContext.moveTo(start[0], start[1]);
+                    canvasContext.lineTo(end[0], end[1]);
+                    canvasContext.strokeStyle = 'black';
+                    canvasContext.lineWidth = 2;
+                    canvasContext.stroke();
+                    canvasContext.closePath();
+                    break;
+                default:
+                    // do nothing here
+            }
+        }
     });
 }
 
@@ -111,10 +111,10 @@ async function connectToHub(hubPeerID) {
 
 // Code cleanup when a client is closed or refreshed
 window.addEventListener("beforeunload", function(e) {
-    // intimate the hub that you are disconnecting
-    hubPeerReference.destroy();
     // intimate signalling server that you are leaving the channel
-    signalClient.discover('leave-' + currentID);
+    socket.emit('peer-left', currentID);
+    // intimate the hub that you are disconnecting
+    hubPeerInstance.destroy();
 });
 
 var rootElement = $('#root');
@@ -154,5 +154,7 @@ function createCursor(mountID) {
 }
 
 function sendDataToHub(dataType, payload) {
-    hubPeerReference && hubPeerReference.send(JSON.stringify({ dataType, payload }));
+    if (hubPeerInstance) {
+        hubPeerInstance.send(JSON.stringify({ dataType, payload, 'remoteID': currentID }));
+    }
 }
