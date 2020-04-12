@@ -1,4 +1,4 @@
-# WEBRTC Sask Channel
+# WEBRTC Sask Channel (Star Topology)
 
 First run the following command to install all the required dependencies from the root path containing the package.json file.
 ``` npm install```
