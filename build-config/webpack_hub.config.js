@@ -5,7 +5,7 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 'use strict';
 module.exports = {
     mode: 'development',
-    entry: ['babel-polyfill', './src/app.js'],
+    entry: ['babel-polyfill', './src/hub.js'],
     output: {
         path: __dirname + '/build/assets/bundle',
         filename: "bundle.js",
@@ -14,7 +14,7 @@ module.exports = {
     devServer: {
         inline: true,
         contentBase: './build',
-        port: 8083,
+        port: 8084,
         compress: true, // fixing invalid host header error on UI
         disableHostCheck: true, // That solved it
         watchOptions: {

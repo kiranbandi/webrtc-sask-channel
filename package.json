@@ -8,7 +8,9 @@
     ],
     "scripts": {
         "signal_server": "node server.js",
+        "debug_signal_server": "nodemon --inspect server.js",
         "start": "webpack-dev-server --config ./build-config/webpack.config.js --watch-poll --host 0.0.0.0",
+        "start_hub": "webpack-dev-server --config ./build-config/webpack_hub.config.js --watch-poll --host 0.0.0.0",
         "build": "webpack -p --config ./build-config/webpack.prod.config.js",
         "deploy": "npm run build && npm run deploy-gh",
         "deploy-gh": "gh-pages -d build"
