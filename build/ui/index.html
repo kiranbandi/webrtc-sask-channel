@@ -8,42 +8,79 @@
     <meta name="description" content="WEBRTC Study developed at UofS">
     <meta name="author" content="kiranbandi">
     <title>WEBRTC Study Example</title>
+    <!--font used by bootstrap theme-->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="./style.scss">
+    <link rel="stylesheet" type="text/css" href="./bootstrap.min.css">
 </head>
 
 <body>
-    <div>
-        <p id="message-box">Please wait while we link up with our remote servers</p>
-        <div id="submit-box" style='display:hidden'>
-            <br>
-            <p style="margin-left:0.5cm"> 1. What type of device are you using for this experiment? </br>(Desktop/Laptop/Tablet)</br>
-                <select id='submit-message-device' name="message">
-			  <option value="none">-Select-</option>
-			  <option value="Desktop">Desktop</option>
-			  <option value="Laptop">Laptop</option>
-			  <option value="Tablet">Tablet</option>
-			</select>
-                <br><br> 2. What type of Internet Line are you using? </br>(DSL/Fibre/Cellular)</br>
-                <select id='submit-message-line' name="message">
-			  <option value="none">-Select-</option>
-			  <option value="Fibre">Fibre</option>
-			  <option value="DSL">DSL/Telephone line</option>
-			  <option value="Cellular">Cellular</option>
-			</select>
-                <br><br> 3. What type of Internet Connection are you using? </br>(Cable/Wifi/Cellular)</br>
-                <select id='submit-message-connection' name="message">
-			  <option value="none">-Select-</option>
-			  <option value="Broadband">Cable</option>
-			  <option value="Wifi">Wifi</option>
-			  <option value="Cellular">Cellular</option>
-			</select>
-                <br><br> 4. What is the name of your City?</br>
-                <input type="text" id='submit-message-city' name="message" />
-                <br><br><button id='submit-button'>SUBMIT</button></br>
-                <b><p style="margin-left:0.5cm" id="demo"></p></b>
+    <div class="container my-5">
+        <div class="jumbotron text-center">
+            <h1 class="display-3">Real Time Communication Study</h1>
+            <p class="lead">University of Saskatchewan, Canada</p>
+        </div>
+
+        <h4 id="error-box" style="display:none" class="text-center text-danger">sorry but a study is ongoing at the moment, please close this page and try again later.</h4>
+        <h4 id="initial-box" class="text-center lead">Please wait while we connect to our remote testing servers</h4>
+        <form style="display:none" class='form my-5' id="submit-box">
+            <div class="form-group">
+                <label for="submit-message-device">What type of device are you using for this experiment?</label>
+                <select class="form-control" id="submit-message-device">
+                        <option>Desktop</option>
+                        <option>Laptop</option>
+                        <option>Tablet</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="submit-message-line">What type of Internet Line are you using?</label>
+                <select class="form-control" id="submit-message-line">
+                        <option>Fibre</option>
+                        <option>DSL/Telephone line</option>
+                        <option>Cellular</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="submit-message-connection">What type of Internet Connection are you using?</label>
+                <select class="form-control" id="submit-message-connection">
+                        <option>Cable</option>
+                        <option>Wifi</option>
+                        <option>Cellular</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="submit-message-city">What is the name of your City?</label>
+                <input type="text" class="form-control" id="submit-message-city" placeholder="Enter city name">
+            </div>
+            <button class='btn btn-primary mx-auto d-block' id='submit-button'>SUBMIT</button>
+        </form>
+
+        <div id='study-box' style="display:none" class="mx-auto my-2">
+            <div class="card p-4">
+                <div class="card-body">
+                    <h4 id="study-message" class="text-center lead">Thanks. The study is now in progress. Please dont close this browser window.</h4>
+                    <div id="step-1" style="display:none" class="form-group has-success">
+                        <input type="text" disabled value="Connected to Socket Server" class="form-control is-valid" id="inputValid">
+                    </div>
+                    <div id="step-2" style="display:none" class="form-group has-success">
+                        <input type="text" disabled value="Questionaire Complete" class="form-control is-valid" id="inputValid">
+                    </div>
+                    <div id="step-3" style="display:none" class="form-group has-success">
+                        <input type="text" disabled value="Socket Test Complete" class="form-control is-valid" id="inputValid">
+                    </div>
+                    <div id="step-4" style="display:none" class="form-group has-success">
+                        <input type="text" disabled value="Connected to Webrtc Server" class="form-control is-valid" id="inputValid">
+                    </div>
+                    <div id="step-5" style="display:none" class="form-group has-success">
+                        <input type="text" disabled value="Webrtc Test Complete" class="form-control is-valid" id="inputValid">
+                    </div>
+                    <div id="step-6" style="display:none" class="form-group has-success">
+                        <input type="text" disabled value="All Experiments Complete" class="form-control is-valid" id="inputValid">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    <p id="busy-box"></p>
     <!--loading assets and webpack bundle-->
     <script src="./jquery.js"></script>
     <script src="./bundle.js"></script>

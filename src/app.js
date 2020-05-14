@@ -26,19 +26,23 @@ signal.once('discover', (r) => {
     socket.on('all-okay', (response) => {
         peerID = response.customID;
         // show questionaire and ask user to fill it out 
-        $("#message-box").text("Please fill out the questionaire and click submit when you are done");
+        $("#initial-box").text("Please fill out the questionaire and click submit when you are done");
         $("#submit-box").show();
         $("#submit-button").on('click', () => {
             // disable page reload on submit
             event.preventDefault();
             $("#submit-box").hide();
-            $("#message-box").text("Thanks, we will now start testing the socket network. Please holdby.");
+            $("#initial-box").hide();
+            $("#study-box").show();
             var systemInfo = [navigator.userAgent,
                 $("#submit-message-device").val(),
                 $("#submit-message-line").val(),
                 $("#submit-message-connection").val(),
                 $("#submit-message-city").val()
             ].join('\n');
+
+            $("#step-1").show();
+            $("#step-2").show();
             socket.emit('system-info', systemInfo);
         })
     });
@@ -48,13 +52,13 @@ signal.once('discover', (r) => {
     });
 
     socket.on('server-busy', (response) => {
-        $("#message-box").remove();
+        $("#study-box").remove();
         $("#submit-box").remove();
-        $('#busy-box').text('sorry but a study is ongoing at the moment, please close this page and try again later.');
+        $('#error-box').show();
     });
 
     socket.on('start-webrtc', (response) => {
-        $("#message-box").text("The socket test is complete. We are now linking with the webrtc server");
+        $("#step-3").show();
         // wait for a couple of seconds before linking to peer
         wait(5000).then(() => connectToHub(response.hubPeerID, peerID));
     });
@@ -63,6 +67,9 @@ signal.once('discover', (r) => {
 
 function startListeningToHub(hub) {
     hubInstance = hub;
+
+
+
     hub.on('data', (message) => {
         const data = JSON.parse(message);
         switch (data.dataType) {
@@ -70,7 +77,12 @@ function startListeningToHub(hub) {
                 sendDataBackToHub('backToHub', data.sendMessage);
                 break;
             case 'Flag':
-                $('#message-box').append('<p><b>' + data.thxMessage + '</p>');
+                $("#step-5").show();
+                wait(10000).then(() => {
+                    $("#step-6").show();
+                    $('#study-message').text('<p><b>' + data.thxMessage + '</p>');
+                    socket.disconnect()
+                });
                 break;
             default:
                 // do nothing here
@@ -86,13 +98,16 @@ async function connectToHub(hubPeerID) {
         // knows what to store your data as 
         const { peer } = await signal.connect(hubPeerID, { customID: peerID }) // connect to the hub
         console.log('connected to hub');
-        $("#message-box").text("webrtc linking was successful, we are now testing the webrtc link. Please await further instructions.");
+        $("#step-4").show();
         startListeningToHub(peer);
     } catch (err) {
         console.log('failed to connect to hub');
         socket.emit('hub-fail', { peerID })
         wait(5000).then(() => {
-            $("#message-box").text("We were unable to link up with the remote webrtc server. Thanks again for your time. Please close this tab");
+            $("#initial-box").remove();
+            $("#study-box").remove();
+            $("#error-box").text("We were unable to link up with the remote webrtc server. Thanks again for your time. Please close this tab").show();
+            socket.disconnect()
         });
     }
 }

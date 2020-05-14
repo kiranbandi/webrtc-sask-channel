@@ -187,7 +187,7 @@ function saveFile(sizes, rates) {
         link = document.createElement("a"),
         timeStamp = (new Date()).toString().split("GMT")[0];
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", sizes + '_' + rates + '_' + 'csv_export' + "-" + timeStamp + ".csv");
+    link.setAttribute("download", connectedPeerID + "_" + sizes + '_' + rates + '_' + 'csv_export' + "-" + timeStamp + ".csv");
     link.click();
     window.csvData = [];
 }

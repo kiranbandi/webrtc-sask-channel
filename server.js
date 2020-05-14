@@ -120,6 +120,15 @@ io.on('connection', function(socket) {
     });
 
 
+    socket.on('study-complete', function() {
+        if (socket.id == currentPeerID) {
+            currentPeerID = '';
+            isChannelFree = true;
+        }
+        // Also clear the interval to stop sending any data 
+        clearInterval(myInterval);
+    });
+
     // When a UI disconnects we reset the currentPeerID back to empty 
     // and channel free flag to true so that  other UIs
     //  can connect to it and start their experiment 
@@ -141,12 +150,8 @@ server.listen(8082, async() => {
     const puppeteer = require('puppeteer');
     const browser = await puppeteer.launch({ dumpio: true });
     const page = await browser.newPage();
-
-
-    const a = await page._client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: __dirname + "\\logs\\webrtc\\" });
-    debugger;
-    await page.goto('http://127.0.0.1:8083/hub/index.html');
-
+    await page._client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: __dirname + "\\logs\\webrtc\\" });
+    await page.goto('http://127.0.0.1:80/hub/index.html');
 });
 // function to get formatted time stamp
 function getTimeStamp() { return moment(new Date()).format('dd-mm-yyyy') }
