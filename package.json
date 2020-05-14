@@ -12,9 +12,6 @@
         "start_server": "node server.js",
         "debug_start_server": "nodemon --inspect server.js"
     },
-    "authors": [
-        "kiranbandi"
-    ],
     "dependencies": {
         "axios": "^0.18.0",
         "cuid": "^2.1.8",

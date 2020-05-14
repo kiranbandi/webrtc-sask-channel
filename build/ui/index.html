@@ -13,8 +13,37 @@
 
 <body>
     <div>
-        <p class="message-box"></p>
+        <p id="message-box">Please wait while we link up with our remote servers</p>
+        <div id="submit-box" style='display:hidden'>
+            <br>
+            <p style="margin-left:0.5cm"> 1. What type of device are you using for this experiment? </br>(Desktop/Laptop/Tablet)</br>
+                <select id='submit-message-device' name="message">
+			  <option value="none">-Select-</option>
+			  <option value="Desktop">Desktop</option>
+			  <option value="Laptop">Laptop</option>
+			  <option value="Tablet">Tablet</option>
+			</select>
+                <br><br> 2. What type of Internet Line are you using? </br>(DSL/Fibre/Cellular)</br>
+                <select id='submit-message-line' name="message">
+			  <option value="none">-Select-</option>
+			  <option value="Fibre">Fibre</option>
+			  <option value="DSL">DSL/Telephone line</option>
+			  <option value="Cellular">Cellular</option>
+			</select>
+                <br><br> 3. What type of Internet Connection are you using? </br>(Cable/Wifi/Cellular)</br>
+                <select id='submit-message-connection' name="message">
+			  <option value="none">-Select-</option>
+			  <option value="Broadband">Cable</option>
+			  <option value="Wifi">Wifi</option>
+			  <option value="Cellular">Cellular</option>
+			</select>
+                <br><br> 4. What is the name of your City?</br>
+                <input type="text" id='submit-message-city' name="message" />
+                <br><br><button id='submit-button'>SUBMIT</button></br>
+                <b><p style="margin-left:0.5cm" id="demo"></p></b>
+        </div>
     </div>
+    <p id="busy-box"></p>
     <!--loading assets and webpack bundle-->
     <script src="./jquery.js"></script>
     <script src="./bundle.js"></script>
