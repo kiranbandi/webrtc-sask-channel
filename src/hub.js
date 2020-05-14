@@ -1,8 +1,6 @@
-/*global $*/
 import io from 'socket.io-client';
-import SimpleSignalClient from './custom-signal';
+import SimpleSignalClient from './signaller';
 
-// for extended options go to https://www.html5rocks.com/en/tutorials/webrtc/datachannels/
 var dataChannelOptions = {
     ordered: false, // do not guarantee order
     //maxRetransmitTime: 0,    // in milliseconds, 
@@ -15,48 +13,24 @@ var dataChannelOptions = {
 const socket = io('localhost:8082');
 // construct the webrtc signalling client and pass in the channel options
 const signalClient = new SimpleSignalClient(socket, { dataChannelOptions });
-
 // Join the channel and and then let the signalling  client know that you are ready
 signalClient.discover('join');
 signalClient.once('discover', () => {
-    socket.emit('hub-join');
-    // get a list of peers and initiate connection with each one of them
-    socket.on('notify', (response) => { response.peers.forEach(p => { connectToPeer(p) }) })
-        // If a peer joins the channel after the hub has joined the channel
-        // then accept the connection from it and start listening for data 
-    signalClient.on('request', async(request) => {
-        console.log('accepting new request from peer to connect');
-        const { peer, metadata } = await request.accept();
-        console.log('connected to peer - ', metadata.customID);
-        listenToPeer(peer);
+        // let socket know you are ready
+        socket.emit('hub-join');
+        //    wait for connection request from the peer
+        signalClient.on('request', async(request) => {
+            console.log('accepting new request from peer to connect');
+            const { peer, metadata } = await request.accept();
+            console.log('connected to peer - ', metadata.customID);
+            listenToPeer(peer);
+        })
     })
-})
-
-// if a peer connection is successful then listen for data from the peer
-// and relay it on to everyone else
+    // if a peer connection is successful then listen for data from the peer
 function listenToPeer(peer) {
-    peer.on('data', (message) => { signalClient.peers().forEach(p => { p.send(message) }) });
-    peer.on('close', () => { debugger })
+    peer.on('data', (message) => {
+        // bounce message back
+        peer.send(message);
+    });
+    peer.on('close', () => { console.log('peer left'); });
 }
-
-// connect to peer
-async function connectToPeer(peerInfo) {
-    const peerCustomID = peerInfo.customID;
-    try {
-        console.log('trying to connect to peer - ', peerCustomID);
-        const { peer } = await signalClient.connect(peerInfo.peerID);
-        console.log('connected to peer - ', peerCustomID);
-        listenToPeer(peer);
-    } catch (err) {
-        console.log('failed to connect to peer - ', peerCustomID);
-    }
-}
-
-// intimate signalling server that you are leaving the channel when page is closed
-window.addEventListener("beforeunload", function(e) { socket.emit('hub-left') });
-
-// clear up the DOM as we are reusing same html file for hub and peer UI
-$("#currentID").text("HUB Ready");
-// clear other stuff 
-$("#root").remove();
-$("#message-box").remove();
