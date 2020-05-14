@@ -14,4 +14,4 @@ Then start the **Peer UI** web server using the command below and then it should
 
 ``` npm run start```
 
-The servers run on ports **8082**, **8083** so make sure these are free
+The servers run on ports **8082**, **8083** so make sure these are free , on the production server the UI runs on 80 so check the config file for the port number incase one isnt working.
