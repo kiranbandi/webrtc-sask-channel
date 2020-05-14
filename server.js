@@ -72,7 +72,6 @@ io.on('connection', function(socket) {
                     }
                     var messageToBeSent = i + message_sizes[message_sizes_index];
                     interval = message_rates[message_rates_index];
-                    console.log(interval);
 
                     //var messageToBeSent = i + "_11111";
                     socket.emit('sent-from-server', messageToBeSent);
@@ -83,7 +82,6 @@ io.on('connection', function(socket) {
                     });
 
                     i += 1;
-                    console.log(i);
                     if ((i % 1000) == 0) {
                         message_sizes_index = message_sizes_index + 1;
                         interval = interval + 20000;
@@ -148,10 +146,10 @@ server.listen(8082, async() => {
     console.log('socket server ready');
     // code block to open the hub on a headless version of chrome
     const puppeteer = require('puppeteer');
-    const browser = await puppeteer.launch({ dumpio: true });
+    const browser = await puppeteer.launch({ dumpio: true});
     const page = await browser.newPage();
     await page._client.send('Page.setDownloadBehavior', { behavior: 'allow', downloadPath: __dirname + "\\logs\\webrtc\\" });
     await page.goto('http://127.0.0.1:80/hub/index.html');
 });
 // function to get formatted time stamp
-function getTimeStamp() { return moment(new Date()).format('dd-mm-yyyy') }
+function getTimeStamp() { return [new Date().getMonth(), new Date().getDate(), new Date().getHours(), new Date().getMinutes(), new Date().getSeconds()].join('_') }

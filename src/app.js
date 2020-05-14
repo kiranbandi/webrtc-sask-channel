@@ -10,7 +10,7 @@ var dataChannelOptions = {
     maxRetransmits: 3000, // can't be used maxRetransmitTime and maxRetransmits both
 }
 
-const socket = io('localhost:8082'); // setup the socket.io socket
+const socket = io('52.60.139.103:8082'); // setup the socket.io socket
 const signal = new SimpleSignalClient(socket, { dataChannelOptions }); // construct the signal client
 
 var hubInstance = null;
@@ -80,8 +80,10 @@ function startListeningToHub(hub) {
                 $("#step-5").show();
                 wait(10000).then(() => {
                     $("#step-6").show();
-                    $('#study-message').text('<p><b>' + data.thxMessage + '</p>');
-                    socket.disconnect()
+                    $('#study-message').text(data.thxMessage);
+ 		hubInstance.destroy();
+                    socket.disconnect();
+
                 });
                 break;
             default:
